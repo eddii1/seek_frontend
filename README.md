@@ -2,7 +2,21 @@
 
 A working React + TypeScript command center for a simulated autonomous drone search. The application runs entirely in the browser and needs no API keys, account, backend, or real drone.
 
-## Run locally
+## Live command center (real agent)
+
+The default page is the live command center, connected to the SEEK backend (`backend/`, `uv run fleet-viewer`):
+drone camera and 3D map on top, Grok's agent graph across the bottom. Decisions (approve a move, confirm a find)
+are made next to the graph; click a node or a step for what Grok saw, its prompt and its answer.
+
+```sh
+cd ../backend && uv run fleet-viewer --video flight.mp4   # or --webcam 0, --tello (serves the API on :8001)
+cd ../frontend && npm install && npm run dev              # http://localhost:5173, /api is proxied to :8001
+```
+
+`SEEK_BACKEND_URL=http://127.0.0.1:8003 npm run dev` points it at another backend port. The original simulation
+(no backend) is still at `http://localhost:5173/?sim`.
+
+## Run the simulation locally
 
 Use Node.js 22 or later:
 
