@@ -17,6 +17,9 @@ export function useLiveCapture(enabled: boolean) {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState('');
   const [capture, setCapture] = useState<CaptureJob | null>(null);
+  const [reconnecting,setReconnecting] = useState(false);
+  const [showLivePreview,setShowLivePreview] = useState(false);
+  const [previewVersion,setPreviewVersion] = useState(0);
   const generation = useRef(0);
   const captureRef = useRef<CaptureJob | null>(null);
   const busy = useRef(false);
@@ -90,12 +93,25 @@ export function useLiveCapture(enabled: boolean) {
   },[enabled]);
 
   const device = devices.find(d=>d.id===selectedId) ?? null;
+  async function reconnect() {
+    if(!selectedId || device?.simulated!==false || busy.current || reconnecting) return;
+    setReconnecting(true);setError('');
+    try {
+      const fresh=await api<DeviceState>(`/devices/${encodeURIComponent(selectedId)}/reconnect`,{
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({grounded:true})});
+      setDevices(previous=>previous.map(item=>item.id===fresh.id?fresh:item));
+      setShowLivePreview(true);setPreviewVersion(value=>value+1);
+      log('Grounded TT reconnected. SDK telemetry and video are fresh.','observation');
+    } catch(failure) {setError(failure instanceof Error?failure.message:'Reconnect failed');}
+    finally {setReconnecting(false);}
+  }
   function start(config: MissionConfig) {
     if (busy.current) return;
     if (!connected || !device?.connected) {setError('Connect the backend and a grounded camera device first.');return;}
     if (!health?.agent_ready || health.agent !== 'grok') {setError('Configure Grok on the backend before capturing.');return;}
     const token = ++generation.current;
     busy.current=true; startedAt.current=Date.now();setError('');setCapture(null);captureRef.current=null;
+    setShowLivePreview(false);
     remember(null);
     setState({...initial(),id:crypto.randomUUID(),name:config.name,description:config.description,status:'searching'});
     const controller = new AbortController();polling.current=controller;
@@ -128,12 +144,13 @@ export function useLiveCapture(enabled: boolean) {
     })();
   }
   const controller: MissionController={state,start,abort:cancel,pause:cancel,resume:()=>{},reset:(config)=>{
-    cancel();captureRef.current=null;setCapture(null);setError('');startedAt.current=0;
+    cancel();captureRef.current=null;setCapture(null);setError('');setShowLivePreview(false);startedAt.current=0;
     remember(null);
     setState({...initial(),name:config?.name ?? 'Grounded image assessment',description:config?.description ?? ''});
   },setSpeed:()=>{},confirmCandidate:()=>{},rejectCandidate:()=>{}};
-  return {controller,devices,device,selectedId,setSelectedId,health,connected,error,capture,
-    camera:{deviceId:capture?.device_id ?? device?.id ?? '',source:capture?.source ?? (device?.simulated===false?'real' as const:'simulation' as const),
-      url:capture ? photoUrl(capture) : device?.connected ? `/api/video/${encodeURIComponent(device.id)}` : '',frozen:!!capture},
+  return {controller,devices,device,selectedId,setSelectedId,health,connected,error,capture,reconnecting,reconnect,
+    togglePreview:()=>setShowLivePreview(value=>!value),
+    camera:{deviceId:capture&&!showLivePreview?capture.device_id:device?.id ?? '',source:capture&&!showLivePreview?capture.source:(device?.simulated===false?'real' as const:'simulation' as const),
+      url:capture&&!showLivePreview ? photoUrl(capture) : device?.connected ? `/api/video/${encodeURIComponent(device.id)}?connection=${previewVersion}` : '',frozen:!!capture&&!showLivePreview},
     ready:connected && !!device?.connected && health?.agent==='grok' && health.agent_ready};
 }
