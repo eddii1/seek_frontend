@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import type { Candidate, MissionState, Person, Scenario } from '../types';
 import './camera.css';
+import RealCameraFeed, {type LiveCamera} from './RealCameraFeed';
 
 export interface CameraFeedProps {
   state: MissionState;
@@ -8,6 +9,7 @@ export interface CameraFeedProps {
   regionId?: string | null;
   candidate?: Candidate | null;
   expanded?: boolean;
+  live?: LiveCamera;
 }
 
 const clothingColors: Record<string, string> = {
@@ -47,8 +49,9 @@ function ScenePerson({ person, x, y, scale = 1, selected, prefix }: {
   </g>;
 }
 
-export default function CameraFeed({ state, scenario, regionId, candidate, expanded = false }: CameraFeedProps) {
+export default function CameraFeed({ state, scenario, regionId, candidate, expanded = false, live }: CameraFeedProps) {
   const id = useId().replace(/:/g, '');
+  if(live) return <RealCameraFeed camera={live} expanded={expanded}/>;
   const selectedId = candidate?.regionId ?? regionId ?? state.currentRegionId;
   const region = scenario.regions.find(item => item.id === selectedId);
   const observation = selectedId ? state.observations[selectedId] : undefined;

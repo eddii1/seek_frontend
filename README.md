@@ -1,6 +1,14 @@
 # SEEK — Autonomous Search Intelligence
 
-A working React + TypeScript command center for a simulated autonomous drone search. The application runs entirely in the browser and needs no API keys, account, backend, or real drone.
+A React + TypeScript command center with grounded real-drone capture/Grok assessment and the original autonomous-search simulation. The existing dashboard design is preserved. Grounded live mode connects to the Python backend; demo mode still runs entirely in the browser without API keys or hardware.
+
+## Grounded live capture
+
+See the parent repo's [`docs/grounded-capture.md`](../docs/grounded-capture.md) for complete setup and API details. Power the stationary TT, connect its Wi-Fi plus tethered internet, close other Tello clients, and start the backend with `FLEET_CONFIG=devices.tello-ground.json` and `XAI_API_KEY` in backend `.env`. Run this frontend on port 5173. The Vite `/api` proxy targets localhost:8000 (override with server-side `SEEK_BACKEND_URL`).
+
+In **GROUNDED LIVE**, select the real TT, enter an object/scene description, and click **Capture & assess**. The saved JPEG and actual Grok result are shown together. Movement is disabled. ToF is optional and may be unavailable; room position remains unknown. A `?capture=<id>` URL reopens a saved result without another model call. Mission-log export includes the capture metadata.
+
+Use the top mode button to switch to the original **SIMULATION MODE**. The simulation documentation below refers to that demo mode. The frontend never contains the Grok key. Public/static hosting needs a reverse proxy to the backend; this integration is configured for the local grounded setup.
 
 ## Run locally
 
