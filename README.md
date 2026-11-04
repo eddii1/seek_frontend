@@ -2,6 +2,10 @@
 
 A React + TypeScript command center with grounded real-drone capture/Grok assessment and the original autonomous-search simulation. The existing dashboard design is preserved. Grounded live mode connects to the Python backend; demo mode still runs entirely in the browser without API keys or hardware.
 
+## Dashboard pilot controls
+
+Click **Flight controls** for manual sticks, Take off, Hover, Land/recover, automatic 30-degree yaw scan and runtime report inspection. Start with `pilot-sim` using backend `devices.scan-sim.json`. **Connect real TT** opens only its ground SDK/video link; **Enable controls** is the explicit arming action. No SPACE repeat or typed phrase is used. See [setup, incident analysis and limitations](../docs/dashboard-flight.md). Keyboard: WASD move, Q/E yaw, R/F height, Space hover, Esc land. Hold motor cut is separate and drops the aircraft. Manual mode has no obstacle avoidance; Grok can optionally assess captured scan images after landing.
+
 ## Grounded live capture
 
 See the parent repo's [`docs/grounded-capture.md`](../docs/grounded-capture.md) for complete setup and API details. Power the stationary TT, connect its Wi-Fi plus tethered internet, close other Tello clients, and start the backend with `FLEET_CONFIG=devices.tello-ground.json` and `XAI_API_KEY` in backend `.env`. Run this frontend on port 5173. The Vite `/api` proxy targets localhost:8000 (override with server-side `SEEK_BACKEND_URL`).
