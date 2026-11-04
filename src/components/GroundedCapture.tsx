@@ -13,7 +13,6 @@ export default function GroundedCapture({capture,error,connected}:{capture:Captu
           <p className="evidence-target">“{capture.description}”</p>
           {capture.assessment ? <><h3>{capture.assessment.summary}</h3><h4>Visible evidence</h4><ul>{capture.assessment.evidence.map((text,index)=><li key={index}>{text}</li>)}</ul><h4>Limitations</h4><ul>{capture.assessment.limitations.map((text,index)=><li key={index}>{text}</li>)}</ul><small>{capture.model} · Model assessment, subject to visual uncertainty</small></>
             : <p>{capture.status==='analyzing'?'Assessing the captured frame…':capture.error ?? 'Assessment cancelled. The image is retained.'}</p>}
-          <div className="grounded-range">TT expansion ToF: {capture.forward_range.status==='valid'?`${capture.forward_range.distance_mm} mm` : capture.forward_range.status.replaceAll('_',' ')}<small>Single-direction sample; target association and obstacle clearance are unverified.</small></div>
         </div>
       </>}
       {error&&<p className="form-error" role="alert">{error}</p>}

@@ -6,7 +6,13 @@ A React + TypeScript command center with grounded real-drone capture/Grok assess
 
 See the parent repo's [`docs/grounded-capture.md`](../docs/grounded-capture.md) for complete setup and API details. Power the stationary TT, connect its Wi-Fi plus tethered internet, close other Tello clients, and start the backend with `FLEET_CONFIG=devices.tello-ground.json` and `XAI_API_KEY` in backend `.env`. Run this frontend on port 5173. The Vite `/api` proxy targets localhost:8000 (override with server-side `SEEK_BACKEND_URL`).
 
-In **GROUNDED LIVE**, select the real TT, enter an object/scene description, and click **Capture & assess**. The saved JPEG and actual Grok result are shown together. Movement is disabled. ToF is optional and may be unavailable; room position remains unknown. A `?capture=<id>` URL reopens a saved result without another model call. Mission-log export includes the capture metadata.
+In **GROUNDED LIVE**, select the real TT, enter an object/scene description, and click **Capture & assess**. The saved JPEG and actual Grok result are shown together. Movement is disabled. The forward ToF sensor is retired; room position remains unknown. A `?capture=<id>` URL reopens a saved result without another model call. Mission-log export includes the capture metadata.
+
+## Grok mapping simulator
+
+Start the backend with `FLEET_CONFIG=devices.scan-sim.json`, then click **Grok mapping** in this dashboard. Enter “Scan the environment” and start the autonomous scan. The workspace preserves the existing design and shows a rotatable 3D point cloud, observed occupancy grid, simulator camera, real Grok decisions and locally checked outcomes. The bounded trial scans from two viewpoints and lands; STOP & land and heartbeat expiry end it early. Unknown cells remain blocked. The JSON export contains the geometry and decisions. See [the full procedure and measured run](../docs/grok-mapping.md).
+
+This is synthetic room geometry and simulator pose, with real model calls. Real drone scanning is gated; the physical watchdog remains unchanged. The original browser-only demo is still separate and uses no API.
 
 Use the top mode button to switch to the original **SIMULATION MODE**. The simulation documentation below refers to that demo mode. The frontend never contains the Grok key. Public/static hosting needs a reverse proxy to the backend; this integration is configured for the local grounded setup.
 
