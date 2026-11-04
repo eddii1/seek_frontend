@@ -4,6 +4,8 @@ A React + TypeScript command center with grounded real-drone capture/Grok assess
 
 ## Dashboard pilot controls
 
+**Experimental mapping is now inside Flight controls.** Prepare depth + Grok on the ground → Enable controls → Launch real/simulator mapping. Two 360 capture stations, slow forward pulses, live risk/point cloud, manual takeover and `.ply`/image+pose `.zip` exports use the existing design. Take off unlocks manual sticks and Rise/Descend controls; the dashboard explains disabled states. Pilot battery thresholds are 20%/15%, with a 120-second cap. Read [the procedure and experimental limits](../docs/experimental-mapping.md) first; estimated depth is not guaranteed collision avoidance.
+
 Click **Flight controls** for manual sticks, Take off, Hover, Land/recover, automatic 30-degree yaw scan and runtime report inspection. Start with `pilot-sim` using backend `devices.scan-sim.json`. **Connect real TT** opens only its ground SDK/video link; **Enable controls** is the explicit arming action. No SPACE repeat or typed phrase is used. See [setup, incident analysis and limitations](../docs/dashboard-flight.md). Keyboard: WASD move, Q/E yaw, R/F height, Space hover, Esc land. Hold motor cut is separate and drops the aircraft. Manual mode has no obstacle avoidance; Grok can optionally assess captured scan images after landing.
 
 ## Grounded live capture
