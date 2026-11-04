@@ -45,7 +45,7 @@ export default function PilotDashboard({onExit}:{onExit:()=>void}){
     const held=heldKeys.current;
     function stopKeys(){held.clear();neutral();cutCancel();}
     function key(event:KeyboardEvent,down:boolean){
-      if((event.target as HTMLElement)?.matches('input,textarea,select')||event.ctrlKey||event.metaKey)return;
+      if(down&&((event.target as HTMLElement)?.matches('input,textarea,select')||event.ctrlKey||event.metaKey))return;
       if(down&&event.key==='Escape'){if(!event.repeat)void land();event.preventDefault();return;}
       if(down&&event.code==='Space'){if(!event.repeat){stopKeys();send({action:'hover'});}event.preventDefault();return;}
       const k=event.key.toLowerCase();if(!'wasdqerf'.includes(k)||k.length!==1||!latest.current?.manual_ready||tabRef.current!=='flight')return;
