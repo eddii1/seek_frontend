@@ -1,6 +1,5 @@
-.env
-.env.*
-!.env.example
-.DS_Store
 node_modules/
 dist/
+.DS_Store
+*.log
+*.tsbuildinfo

@@ -1,0 +1,66 @@
+.multi-camera{position:relative;min-width:0;background:#000;border-radius:8px;overflow:hidden}
+.multi-camera>img{width:100%;height:100%;object-fit:contain}
+.multi-camera-status{position:absolute;bottom:8px;left:8px;right:8px;background:#080d14dd;padding:8px;font-size:11px}
+.multi-height{position:absolute;top:48px;left:8px;right:8px;background:#080d14ed;padding:12px;display:flex;flex-wrap:wrap;gap:8px;border:1px solid var(--amber);border-radius:8px}
+.multi-height b{width:100%}.multi-height button{background:#23303d;padding:8px}
+.multi-calibration{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:#101923;padding:14px;border-radius:8px}
+.multi-calibration>strong,.multi-calibration>.subtle{width:100%}.multi-calibration>div{display:flex;flex-wrap:wrap;gap:12px;width:100%}
+.multi-calibration label{display:flex;align-items:center;gap:6px;font-size:11px}
+.multi-calibration input[type=number]{width:64px;background:#080d14;color:#e6edf4;border:1px solid #344456;padding:6px;border-radius:4px}
+.multi-calibration [role=alert]{color:#ff9b90;width:100%}
+.multi-setup-backdrop{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:#000a;padding:24px}
+.multi-setup-backdrop .multi-calibration{width:min(900px,100%);max-height:85vh;overflow:auto;border:1px solid #344456;box-shadow:0 20px 80px #000a}
+.multi-calibration>strong{display:flex;align-items:center;justify-content:space-between}
+.multi-rover-lane .chain-node.act .chain-head>b{font-size:0}
+.multi-rover-lane .chain-node.act .chain-head>b::after{content:'Rover';font-size:12px}
+.multi-rover-graph{padding:16px;border:1px solid #294a43;border-radius:8px;overflow:auto;font-size:12px}
+.multi-rover-graph p{margin:10px 0;color:#a8bbc9}.multi-flow{padding:12px 0;color:var(--mint)}
+.multi-device-controls{position:absolute;top:8px;right:8px;display:flex;gap:6px;z-index:2}.multi-device-controls .button{padding:6px 10px;font-size:11px}
+
+/* Layout: one column per device (camera on top, its agent graph below), shared 3D map on the right. */
+.multi-main{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0 12px 12px}
+/* fixed 2:3 split with min 0: both device columns stay the same height whatever their graphs or logs contain */
+.multi-device{min-width:0;min-height:560px;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,2fr) minmax(0,3fr);gap:10px}
+.multi-main>.live-map{min-height:540px}
+.multi-label{position:absolute;left:10px;top:10px;z-index:3;padding:3px 9px;border-radius:4px;background:#e3f6ec;color:#0f5132;font:800 12px Inter,system-ui;letter-spacing:.12em;box-shadow:0 2px 10px #0006}
+.multi-readout{position:absolute;left:10px;top:38px;z-index:3;padding:2px 7px;border-radius:4px;background:#080d14cc;color:#cfe0f0;font:10px var(--mono);letter-spacing:.08em}
+/* Graph lanes are near-square: stack the mission panel under the graph instead of beside it. */
+/* min-width:0 all the way down: otherwise the path chips / long text widen the lane past its column and clip the graph */
+.multi-lane{grid-column:auto;min-height:0;min-width:0;overflow:hidden}
+.multi-lane .sm-wrap,.multi-lane .sm-main,.multi-lane .fp,.multi-lane .fp-row{min-width:0}
+.multi-lane .sm-main .sm{min-height:120px}
+.multi-lane .sm-wrap{flex-direction:column}
+.multi-lane .sm-main{flex:1 1 55%}
+.multi-lane .sm-side{width:auto;min-width:0;max-width:none;flex:0 1 auto;max-height:45%;overflow:auto;padding:10px 4px 0;border-left:0;border-top:1px solid #1c2733;zoom:.75}
+.multi-lane .fp{zoom:.75}
+.multi-candidate{position:absolute;left:8px;right:8px;bottom:8px;z-index:4;display:flex;flex-direction:column;gap:6px;padding:10px 12px;background:#080d14ee;border:1px solid var(--mint);border-radius:8px}
+.multi-candidate .eyebrow{color:var(--mint)}
+.multi-candidate p{margin:0;font-size:12px;line-height:1.45;color:#cfe0f0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.multi-candidate>div{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.multi-candidate>div>a{margin-right:auto;font-size:11px}
+.multi-candidate .button{padding:6px 10px;font-size:11px}
+.multi-error{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:40;margin:0;padding:10px 14px;background:#2a1414;border:1px solid #5a2a27;border-radius:8px;color:#ff9b90;font-size:12px}
+@media(max-width:1200px){.multi-main{grid-template-columns:repeat(2,minmax(0,1fr))}.multi-main>.live-map{grid-column:1/-1;min-height:420px}}
+@media(max-width:760px){.multi-main{grid-template-columns:minmax(0,1fr)}}
+
+.multi-auto{position:absolute;left:10px;top:62px;z-index:3;display:flex;align-items:center;gap:6px;padding:3px 8px 3px 4px;border-radius:4px;background:#080d14cc;color:#cfe0f0;font:600 10px Inter,system-ui;letter-spacing:.06em;cursor:pointer}
+
+/* header, per the brand sheet: logo, mint primary action, quiet outlined controls; wraps instead of clipping */
+.multi-top{height:auto;min-height:56px;flex-wrap:wrap;row-gap:8px;padding:10px 16px}
+.multi-back{font-size:11px;color:var(--muted);white-space:nowrap}.multi-back:hover{color:#e5edef}
+.multi-goals{flex:1 1 520px;min-width:0;display:flex;gap:8px}
+.multi-goals .live-goal{min-width:0;border:1px solid var(--line)}
+.multi-goals .live-goal .eyebrow{color:var(--mint);flex-shrink:0}
+.multi-top .button{border-radius:3px}
+.multi-start{flex-shrink:0;padding:8px 14px}
+.multi-stop{display:flex;align-items:center;flex-shrink:0;height:34px;border:1px solid #5c563b;border-radius:3px;overflow:hidden}
+.multi-stop .eyebrow{padding:0 10px;color:var(--amber)}
+.multi-stop button{height:100%;display:flex;align-items:center;gap:6px;padding:0 12px;border-left:1px solid #5c563b;color:#e6d6a8;font-size:11px;font-weight:600}
+.multi-stop button:hover{background:#2a2617}
+.multi-stop button.all{background:#ffd400;color:#171300;font-weight:800;letter-spacing:.04em}
+.multi-stop button.all:hover{background:#ffe45c}
+.multi-land{flex-shrink:0;background:transparent;border-color:#2a3947;color:#c7d3de}
+.multi-land:hover{border-color:var(--amber);color:var(--amber)}
+.multi-device-controls .button{border-radius:3px;background:#0b131ccc;border:1px solid #2a3947;color:#dbe5ec}
+.multi-device-controls .button:not(:disabled):hover{border-color:var(--mint);color:var(--mint)}
+.multi-device-controls .live-hover{border-color:#5c563b;color:#e6d6a8}
