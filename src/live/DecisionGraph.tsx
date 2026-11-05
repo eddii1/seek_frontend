@@ -10,8 +10,9 @@ export const KIND: Record<GraphNode['kind'], string> = {
    recon -> grok -> (continue) goto | look | spin -> back to grok
             grok -> (found) verify -> you -> __end__
    States are laid out left to right in the order the mission first reaches them, so the graph grows to the right. */
-type Id = 'start' | 'grok' | 'goto' | 'look' | 'spin' | 'verify' | 'you' | 'end';
+type Id = 'setup' | 'start' | 'grok' | 'goto' | 'look' | 'spin' | 'verify' | 'you' | 'end';
 const N: Record<Id, { w: number; h: number; name: string; tone: string }> = {
+  setup: { w: 140, h: 46, name: 'height check', tone: 'human' },
   start: { w: 110, h: 44, name: 'recon', tone: 'neutral' },
   grok: { w: 160, h: 54, name: 'grok', tone: 'agent' },
   verify: { w: 120, h: 46, name: 'verify', tone: 'agent' },
@@ -47,6 +48,7 @@ function now(g: Graph | null, st: LiveState | null): { active: Id | null; edge: 
   const last = steps[steps.length - 1];
   if (!last) return { active: null, edge: null };
   if (st?.status.startsWith('ended')) return { active: st.status.includes('found') ? 'end' : null, edge: null };
+  if (last.step < 0) return { active: 'setup', edge: null };
   if (last.step === 0) return { active: 'start', edge: null };
   const r = reply(last), act = (r?.action === 'found' ? 'look' : r?.action) as Id | undefined;
   const busy = (k: GraphNode['kind']) => last.nodes.some(n => n.kind === k && (n.status === 'running' || n.status === 'waiting'));
@@ -68,20 +70,21 @@ function Edge({ d, kind, label, lx, ly, hot, anchor = 'middle' }: { d: string; k
 export default function DecisionGraph({ graph, state, onOpen }: {
   graph: Graph | null; state: LiveState | null; onOpen: (n: GraphNode) => void;
 }) {
-  const steps = graph?.steps ?? [];
+  const steps = (graph?.steps ?? []).filter(s => s.step >= 0 || s.nodes.some(n => n.kind === 'act' && n.status === 'done'));
   const { active, edge } = now(graph, state);
   const count = (id: Id) => steps.filter(s => reply(s)?.action === id).length;
   const open = (id: Id) => {
     const kind: GraphNode['kind'] = id === 'grok' ? 'think' : id === 'verify' ? 'verify' : id === 'you' ? 'confirm' : 'act';
     const match = [...steps].reverse().flatMap(s => s.nodes.filter(n => n.kind === kind
-      && (kind !== 'act' || (isAction(id) && reply(s)?.action === id) || (id === 'start' && s.step === 0))).map(n => withImages(s, n)));
+      && (kind !== 'act' || (isAction(id) && reply(s)?.action === id) || (id === 'start' && s.step === 0)
+        || (id === 'setup' && s.step < 0))).map(n => withImages(s, n)));
     if (match[0]) onOpen(match[0]);
   };
   /* Nodes appear only once the mission has asked for them (the canvas starts empty), in the order they were reached. */
   const order: Id[] = [];
   const reach = (id: Id) => { if (!order.includes(id)) order.push(id); };
   for (const s of steps) {
-    reach(s.step === 0 ? 'start' : 'grok');
+    reach(s.step < 0 ? 'setup' : s.step === 0 ? 'start' : 'grok');
     const act = reply(s)?.action ?? think(s)?.partial?.action;
     if (act && isAction(act)) reach(act as Id);
     if (s.nodes.some(n => n.kind === 'verify')) reach('verify');
@@ -93,7 +96,7 @@ export default function DecisionGraph({ graph, state, onOpen }: {
   const X: Partial<Record<Id, number>> = {};
   let cursor = PAD;
   for (const id of order) { X[id] = cursor + N[id].w / 2; cursor += N[id].w + GAP; }
-  const width = Math.max(cursor - GAP + PAD, 900);
+  const width = Math.max(cursor - GAP + PAD, 620);
   const B = (id: Id) => ({ ...N[id], x: X[id] ?? 0, y: ROW });
   /** An edge from a to b: straight when b comes right after a, else an arc (forward above, backward below). */
   const link = (a: Id, b: Id, lane = 0) => {
@@ -107,12 +110,15 @@ export default function DecisionGraph({ graph, state, onOpen }: {
   const lastTitle = typing ? (typing.action ? `${typing.action} ${typing.cell ?? ''}…` : 'thinking…') : steps.length > 1 ? lastStep.title : '';
 
   return <div className="sm-wrap">
-    <svg className="sm" viewBox={`0 0 ${width} ${HEIGHT}`} preserveAspectRatio="xMinYMid meet">
+    <div className="sm-main">
+    <svg className="sm" role="img" aria-label="Agent graph: height check, reconnaissance, reasoning and actions"
+      viewBox={`0 0 ${width} ${HEIGHT}`} preserveAspectRatio="xMinYMid meet">
       <defs>
         {[['arrow-flow', '#6f8fb3'], ['arrow-cond', '#a77bdb'], ['arrow-hot', '#d9b775']].map(([id, c]) =>
           <marker key={id} id={id} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" fill={c} /></marker>)}
       </defs>
+      {both('setup', 'start') && <Edge kind="flow" {...link('setup', 'start')} label="begin" />}
       {both('start', 'grok') && <Edge kind="flow" {...link('start', 'grok')} />}
       {ACTIONS.filter(a => both('grok', a)).map((a, i) => <g key={a}>
         <Edge kind="cond" hot={edge === `grok-${a}`} {...link('grok', a, i)} label={i === 0 ? 'continue' : undefined} />
@@ -124,7 +130,7 @@ export default function DecisionGraph({ graph, state, onOpen }: {
       {seen.has('verify') && <Edge kind="cond" {...link('verify', 'grok', 3)} label="not it" />}
       {seen.has('you') && <Edge kind="cond" {...link('you', 'grok', 4)} label="search on" />}
       {order.map(id => {
-        const b = B(id), c = id === 'grok' ? Math.max(0, steps.length - 1) : isAction(id) ? count(id) : 0;
+        const b = B(id), c = id === 'grok' ? steps.filter(s => s.step > 0).length : isAction(id) ? count(id) : 0;
         const sub = id === 'grok' ? lastTitle : isAction(id) ? payload(id, steps) : '';
         const asked = !active && edge === `grok-${id}`;
         return <g key={id} className={`sm-node ${b.tone}${active === id ? ' active' : ''}${asked ? ' asked' : ''}`}
@@ -136,7 +142,42 @@ export default function DecisionGraph({ graph, state, onOpen }: {
         </g>;
       })}
     </svg>
+    <FlightPath steps={steps} onOpen={onOpen} />
+    </div>
     <Inspector graph={graph} state={state} onOpen={onOpen} />
+  </div>;
+}
+
+/** Under the graph: where the drone actually went, one chip per move, newest on the right. */
+function FlightPath({ steps, onOpen }: { steps: GraphStep[]; onOpen: (n: GraphNode) => void }) {
+  const moves = steps.flatMap(s => {
+    const r = reply(s), t = think(s), act = s.nodes.find(n => n.kind === 'act');
+    const refused = s.nodes.some(n => n.status === 'refused' || n.status === 'rejected');
+    if (s.step === 0) return act ? [{ s, n: act, icon: '⟳', text: 'recon', cls: act.status }] : [];
+    if (s.step < 0) {
+      const n = s.nodes[s.nodes.length - 1];
+      return n ? [{ s, n, icon: '↕', text: 'height check', cls: n.status }] : [];
+    }
+    if (!r?.action || !t) return [];
+    const n = act ?? t, cls = refused ? 'refused' : n.status;
+    if (r.action === 'goto') return [{ s, n, icon: '', text: `${r.cell}${act?.flown ? ` · ${act.flown} m` : ''}`, cls }];
+    if (r.action === 'spin') return [{ s, n, icon: '⟳', text: '', cls }];
+    if (r.action === 'look') return [{ s, n, icon: '◉', text: HEAD[r.heading ?? 0] ?? '', cls }];
+    if (r.action === 'found') return [{ s, n, icon: '★', text: 'found', cls: s.nodes.some(x => x.kind === 'confirm' && x.status === 'done') ? 'found' : cls }];
+    return [];
+  });
+  const total = steps.reduce((m, s) => m + (s.nodes.find(n => n.kind === 'act')?.flown ?? 0), 0);
+  if (!moves.length) return null;
+  return <div className="fp">
+    <span className="fp-label">PATH{total > 0 && <b> {total.toFixed(1)} m</b>}</span>
+    <div className="fp-row" ref={el => { if (el) el.scrollLeft = el.scrollWidth; }}>
+      {moves.map((m, i) => <span key={m.s.step} className="fp-item">
+        {i > 0 && <i className="fp-arrow">▸</i>}
+        <button className={`fp-chip ${m.cls}`} title={`#${m.s.step} ${reply(m.s)?.thought ?? m.s.title}`} onClick={() => onOpen(withImages(m.s, m.n))}>
+          {m.icon && <span className="fp-icon">{m.icon}</span>}{m.text}
+        </button>
+      </span>)}
+    </div>
   </div>;
 }
 
@@ -168,7 +209,7 @@ function Inspector({ graph, state, onOpen }: { graph: Graph | null; state: LiveS
     </div>
   </div>;
 
-  const last = steps[steps.length - 1];
+  const last = graph?.steps[graph.steps.length - 1];
   return <div className="sm-side">
     <span className="eyebrow">{state?.running ? 'NOW' : graph?.goal ? 'LAST MISSION' : 'GROK'}</span>
     <strong className="sm-now">{state?.status || 'Describe what to find and press Start search.'}</strong>

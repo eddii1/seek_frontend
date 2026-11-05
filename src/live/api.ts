@@ -6,27 +6,32 @@ export type NodeStatus = 'running' | 'waiting' | 'done' | 'refused' | 'rejected'
 export interface GraphNode {
   id: string; kind: 'observe' | 'think' | 'check' | 'approve' | 'act' | 'verify' | 'confirm';
   label: string; status: NodeStatus; detail?: string; seen?: string; seconds?: number; model?: string;
-  images?: string[]; photo?: string; prompt?: string; reply?: Record<string, unknown>;
+  images?: string[]; photo?: string; flown?: number; prompt?: string; reply?: Record<string, unknown>;
   /** While Grok is still answering: the raw text so far, and the fields read from it so far. */
   stream?: string | null; partial?: { seen?: string; thought?: string; action?: string; cell?: string; evidence?: string } | null;
 }
 export interface GraphStep { step: number; title: string; trace: string; nodes: GraphNode[] }
-export interface Graph { goal: string; steps: GraphStep[]; phoenix: string | null }
+export interface Graph { goal: string; steps: GraphStep[]; phoenix: string | null; mission?: string; version?: number }
 
 export interface Plan { action: string; label: string; text: string; thought: string; heading?: number | null }
 export interface LiveState {
   kind: 'webcam' | 'drone'; mode: 'manual' | 'agent'; running: boolean; goal: string; status: string;
   confirm: { cell: string; evidence: string; photo: string } | null;
   plan: Plan | null; waiting: boolean; approve_each: boolean;
+  height_waiting?: boolean; busy?: boolean;
+  manual_status?: string;
   instruction: string | null; progress: string | null;
   pose: { x: number; y: number; z: number; yaw: number }; battery: number | null;
   log: { t: number; cmd: string; reply: string }[];
 }
 export interface Scene {
+  rover?: { x: number; y: number; z: number; yaw: number } | null;
+  rover_trail?: [number, number][];
   points: number[][]; pose: { x: number; y: number; z: number; yaw: number };
-  state: { drone_cell: string; frames_used: number; cells: { free: number; obstacle: number; unknown: number } };
+  state: { drone_cell: string; frames_used: number; cells: { free: number; obstacle: number; unknown: number };
+    camera_view?: { x: number; y: number; cell: string; lookahead_m: number } };
   grid: number[][]; n: number; half: number; cell: number; visited: string[];
-  plan: { action: string; label: string; heading: number | null; path: number[][] } | null;
+  plan: { action: string; label: string; heading: number | null; path: number[][]; route?: number[][] } | null;
 }
 
 export const url = (path: string) => `/api${path}`;
@@ -63,13 +68,26 @@ export function usePoll<T>(path: string, ms: number): T | null {
   return data;
 }
 
-/** Subscribe to a server-sent-events endpoint that sends JSON; reconnects by itself (EventSource does). */
-export function useStream<T>(path: string): T | null {
+/** Stream live updates, with an initial snapshot and polling fallback if the stream stalls/reconnects. */
+export function useStream<T>(path: string, snapshotPath?: string): T | null {
   const [data, setData] = useState<T | null>(null);
   useEffect(() => {
+    let alive = true, revision = 0, lastMessage = 0, timer = 0;
     const es = new EventSource(url(path));
-    es.onmessage = e => { try { setData(JSON.parse(e.data)); } catch { /* partial frame: wait for the next */ } };
-    return () => es.close();
-  }, [path]);
+    es.onmessage = e => {
+      try { const next = JSON.parse(e.data) as T; revision++; lastMessage = Date.now(); if (alive) setData(next); }
+      catch { /* malformed message: the snapshot will recover it */ }
+    };
+    const refresh = async () => {
+      const before = revision;
+      if (snapshotPath && Date.now() - lastMessage > 1500) {
+        try { const next = await get<T>(snapshotPath); if (alive && revision === before) setData(next); }
+        catch { /* backend down: keep the last graph */ }
+      }
+      if (alive && snapshotPath) timer = window.setTimeout(refresh, 2000);
+    };
+    void refresh();
+    return () => { alive = false; window.clearTimeout(timer); es.close(); };
+  }, [path, snapshotPath]);
   return data;
 }

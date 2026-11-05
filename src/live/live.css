@@ -13,9 +13,13 @@
 .live-ghost:hover{color:#e6edf4}
 .live-status{display:flex;align-items:center;gap:7px;font:10px var(--mono);letter-spacing:.3px;color:#a9b8c6;max-width:300px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.live-status>i{width:6px;height:6px;border-radius:50%;background:var(--mint);flex-shrink:0;box-shadow:0 0 8px #76dcc155}
+.live-status>i{width:6px;height:6px;border-radius:50%;background:var(--mint);flex-shrink:0;box-shadow:0 0 8px #a8d9c455}
 .live-status.down{color:#e0a19f}.live-status.down>i{background:#d1615d;box-shadow:none}
 .live-top .button{min-height:32px}
+.live-top .live-hover{min-height:46px;min-width:176px;flex-shrink:0;justify-content:center;gap:10px;padding:0 18px;
+  background:#ffd400;color:#171300;border:2px solid #ffe879;border-radius:8px;font-size:15px;font-weight:900;letter-spacing:.5px}
+.live-top .live-hover:hover{background:#ffe45c;box-shadow:0 0 18px #ffd40055}
+.live-top .live-hover:focus-visible{outline:3px solid white;outline-offset:2px}
 
 /* camera + 3D map on top (smaller), the agent graph across the whole bottom */
 .live-main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);
@@ -24,12 +28,14 @@
 .live-graph{grid-column:1 / span 2;display:flex;flex-direction:column;overflow:visible;background:#0c1219}
 .live-tag{position:absolute;left:12px;top:10px;z-index:3;display:flex;align-items:center;gap:6px;font:9.5px var(--mono);letter-spacing:1px;
   color:#c7d3de;background:rgba(8,13,20,.72);padding:4px 8px;border-radius:4px;pointer-events:none}
-.live-tag>i{width:6px;height:6px;border-radius:50%;background:#55687a}.live-tag>i.on{background:var(--mint);box-shadow:0 0 8px #76dcc1aa}
+.live-tag>i{width:6px;height:6px;border-radius:50%;background:#55687a}.live-tag>i.on{background:var(--mint);box-shadow:0 0 8px #a8d9c4aa}
 
 .live-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
 .live-manual{position:absolute;right:10px;bottom:10px;z-index:3;display:flex;gap:4px}
 .live-manual button{display:flex;align-items:center;gap:4px;background:rgba(8,13,20,.78);color:#c7d3de;border-radius:4px;padding:5px 9px;font-size:10.5px}
 .live-manual button:hover{background:rgba(20,32,44,.95);color:#fff}
+.live-keys{position:absolute;left:10px;bottom:44px;z-index:3;max-width:calc(100% - 20px);font:9px var(--mono);
+  color:#91a1b2;background:rgba(8,13,20,.8);padding:5px 7px;border-radius:4px}
 .live-instruction{position:absolute;left:10px;right:10px;bottom:10px;z-index:4;display:flex;align-items:center;gap:12px;padding:10px 12px;
   background:rgba(217,183,117,.96);color:#1a1405;border-radius:6px;font-size:14px;font-weight:600}
 .live-instruction span{flex:1}
@@ -42,7 +48,22 @@
 .live-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 
 /* the agent graph (LangGraph style) + the inspector to its right */
-.sm-wrap{flex:1;min-height:0;display:flex;gap:10px;padding:34px 12px 12px}
+.sm-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.sm-main .sm{display:block;width:100%;height:100%;min-height:160px;flex:1 1 0}
+.fp{display:flex;align-items:center;gap:10px;min-height:30px}
+.fp-label{font:600 10px Inter,system-ui;letter-spacing:.12em;color:#6f8fb3;white-space:nowrap}
+.fp-label b{color:#ffd400;letter-spacing:0}
+.fp-row{display:flex;align-items:center;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+.fp-item{display:inline-flex;align-items:center}
+.fp-arrow{color:#3c5670;font-style:normal;font-size:10px;margin:0 5px}
+.fp-chip{font:500 11.5px 'JetBrains Mono',ui-monospace,monospace;color:#cfe0f0;background:#121b25;border:1px solid #243446;border-radius:11px;padding:3px 9px;cursor:pointer;display:inline-flex;gap:5px;align-items:center}
+.fp-chip:hover{border-color:#6f8fb3}
+.fp-icon{color:#9fb0c0}
+.fp-chip.running,.fp-chip.waiting{border-color:#ffd400;color:#ffd400;animation:fp-pulse 1.2s ease-in-out infinite}
+.fp-chip.failed,.fp-chip.refused,.fp-chip.rejected{color:#e0736a;border-color:#5a2a27;text-decoration:line-through}
+.fp-chip.found{color:#a8d9c4;border-color:#a8d9c4}
+@keyframes fp-pulse{50%{box-shadow:0 0 0 3px rgba(255,212,0,.18)}}
+.sm-wrap{flex:1;min-width:0;min-height:0;display:flex;gap:10px;padding:34px 12px 12px;overflow:hidden}
 .sm{flex:1;min-width:0;height:100%}
 .sm .edge path{fill:none;stroke-width:1.6}
 .sm .edge.flow path{stroke:#6f8fb3}
@@ -130,3 +151,27 @@
 
 .button-land{background:#d9b775;color:#14110a;font-weight:700;border:0}
 .button-land:hover{background:#e6c88b}
+
+.live-pick{position:absolute;left:50%;top:44px;transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:8px;
+background:rgba(8,13,20,.92);border:1px solid #a8d9c4;border-radius:8px;padding:7px 8px 7px 12px;font-size:12.5px;color:#e6edf4}
+.live-pick b{color:#a8d9c4}
+.live-settings{position:absolute;left:10px;bottom:10px;z-index:3;display:flex;align-items:center;gap:10px;background:rgba(8,13,20,.78);
+border-radius:6px;padding:5px 9px;font-size:10.5px;color:#9fb0c0}
+.live-settings label{display:flex;align-items:center;gap:5px}
+.live-settings select{background:#121b25;color:#e6edf4;border:1px solid #243446;border-radius:4px;font-size:10.5px;padding:2px 4px}
+
+.live-height{position:absolute;left:16px;right:16px;top:48px;z-index:5;display:flex;flex-direction:column;gap:10px;
+  padding:18px;background:rgba(8,13,20,.94);border:1px solid var(--amber);border-radius:8px;color:#e6edf4}
+.live-height>.eyebrow{color:var(--amber)}
+.live-height>strong{font:700 36px var(--mono)}
+.live-height small{font-size:18px;color:var(--muted)}
+.live-height p{color:#a9b8c6;font-size:12px}
+.live-height>div{display:flex;gap:8px;flex-wrap:wrap}
+.live-height .button{min-height:38px;background:#23303d}
+.live-height .button-primary{background:var(--mint);color:#092820;margin-left:auto}
+
+/* single page: + Add device, top right of the 3D map */
+.add-device{position:absolute;right:12px;top:7px;z-index:4;display:flex;align-items:center;gap:6px;height:26px;padding:0 10px 0 7px;border-radius:3px;
+  background:var(--mint);color:#092820;font-size:11px;font-weight:600;box-shadow:inset 0 1px 0 #ffffff33,0 4px 14px #0006}
+.add-device:hover{background:#c2e8d7}
+.seek-logo{display:flex;align-items:center;gap:10px;flex-shrink:0;color:#e5edef;font:700 20px/1 Inter,system-ui;letter-spacing:.22em}
